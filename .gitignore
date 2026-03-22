@@ -1,0 +1,15 @@
+build/
+dist/
+logs/
+.idea/
+.serena/
+
+.env
+.coverage
+*.spec
+*.iml
+__pycache__/
+*.pyc
+
+error_log.txt
+crash_log.txt
