@@ -1,8 +1,8 @@
 import configparser
 import shutil
-import subprocess
 import sys
 import tkinter as tk
+import winreg
 from dataclasses import dataclass
 from datetime import date, datetime
 from pathlib import Path
@@ -12,7 +12,7 @@ from tkinter.scrolledtext import ScrolledText
 # ---------------------------------------------------------------------------
 # 定数
 # ---------------------------------------------------------------------------
-CONFIG_PATH = Path(__file__).parent / "config.ini"
+CONFIG_PATH = Path(__file__).parent / "utils/config.ini"
 TASK_NAME = "TextFileLog"
 SCRIPT_PATH = Path(__file__).resolve()
 
@@ -142,57 +142,46 @@ class FileProcessor:
 # ---------------------------------------------------------------------------
 # TaskSchedulerManager
 # ---------------------------------------------------------------------------
+_RUN_KEY = r"Software\Microsoft\Windows\CurrentVersion\Run"
+
+
 class TaskSchedulerManager:
     def is_registered(self) -> bool:
         try:
-            result = subprocess.run(
-                ["schtasks", "/query", "/tn", TASK_NAME],
-                capture_output=True,
-                text=True,
-            )
-            return result.returncode == 0
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, _RUN_KEY) as key:
+                winreg.QueryValueEx(key, TASK_NAME)
+            return True
+        except FileNotFoundError:
+            return False
         except Exception:
             return False
 
     def register(self) -> tuple[bool, str]:
         pythonw = Path(sys.executable).parent / "pythonw.exe"
         if not pythonw.exists():
-            pythonw = sys.executable  # fallback
+            pythonw = Path(sys.executable)
 
-        cmd = (
-            f'"{pythonw}" "{SCRIPT_PATH}" --auto'
-        )
+        cmd = f'"{pythonw}" "{SCRIPT_PATH}" --auto'
         try:
-            result = subprocess.run(
-                [
-                    "schtasks", "/create",
-                    "/tn", TASK_NAME,
-                    "/tr", cmd,
-                    "/sc", "onlogon",
-                    "/rl", "limited",
-                    "/f",
-                ],
-                capture_output=True,
-                text=True,
-            )
-            if result.returncode == 0:
-                return True, "タスクスケジューラに登録しました"
-            return False, f"登録失敗: {result.stderr.strip()}"
+            with winreg.OpenKey(
+                winreg.HKEY_CURRENT_USER, _RUN_KEY, access=winreg.KEY_SET_VALUE
+            ) as key:
+                winreg.SetValueEx(key, TASK_NAME, 0, winreg.REG_SZ, cmd)
+            return True, "スタートアップに登録しました"
         except Exception as e:
-            return False, f"登録エラー: {e}"
+            return False, f"登録失敗: {e}"
 
     def unregister(self) -> tuple[bool, str]:
         try:
-            result = subprocess.run(
-                ["schtasks", "/delete", "/tn", TASK_NAME, "/f"],
-                capture_output=True,
-                text=True,
-            )
-            if result.returncode == 0:
-                return True, "タスクスケジューラから削除しました"
-            return False, f"削除失敗: {result.stderr.strip()}"
+            with winreg.OpenKey(
+                winreg.HKEY_CURRENT_USER, _RUN_KEY, access=winreg.KEY_SET_VALUE
+            ) as key:
+                winreg.DeleteValue(key, TASK_NAME)
+            return True, "スタートアップから削除しました"
+        except FileNotFoundError:
+            return True, "スタートアップから削除しました"
         except Exception as e:
-            return False, f"削除エラー: {e}"
+            return False, f"削除失敗: {e}"
 
 
 # ---------------------------------------------------------------------------
