@@ -1,17 +1,12 @@
-"""
-text_file_log.py
-AIプロンプト用テキストファイルの日次アーカイブ・リセットツール
-"""
-
-import sys
+import configparser
 import shutil
 import subprocess
-import configparser
+import sys
+import tkinter as tk
+from dataclasses import dataclass
 from datetime import date, datetime
 from pathlib import Path
-from dataclasses import dataclass, field
-import tkinter as tk
-from tkinter import ttk, messagebox, filedialog
+from tkinter import messagebox, filedialog
 from tkinter.scrolledtext import ScrolledText
 
 # ---------------------------------------------------------------------------
@@ -219,8 +214,8 @@ class OperationEditDialog(tk.Toplevel):
 
         # 名前
         tk.Label(self, text="名前:").grid(row=0, column=0, sticky="e", **pad)
-        self._name = tk.StringVar(value=op.name if op else "")
-        tk.Entry(self, textvariable=self._name, width=50).grid(row=0, column=1, columnspan=2, sticky="we", **pad)
+        self._name_var = tk.StringVar(value=op.name if op else "")
+        tk.Entry(self, textvariable=self._name_var, width=50).grid(row=0, column=1, columnspan=2, sticky="we", **pad)
 
         # 原本ファイル
         tk.Label(self, text="原本ファイル:").grid(row=1, column=0, sticky="e", **pad)
@@ -268,7 +263,7 @@ class OperationEditDialog(tk.Toplevel):
             self._archive.set(path)
 
     def _save(self) -> None:
-        name = self._name.get().strip()
+        name = self._name_var.get().strip()
         original = self._original.get().strip()
         target = self._target.get().strip()
         archive = self._archive.get().strip()
