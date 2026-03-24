@@ -61,7 +61,7 @@ python build.py
 
 1. `ConfigManager` loads `FileOperation` objects from `config.ini` (one INI section per operation)
 2. `FileProcessor.process_all()` executes each operation:
-   - If target is newer than original → archive target as `filename_YYMMDD_HHMMSS.ext`, then overwrite target with original
+   - If target is newer than original → archive target as `filename_YYMMDD_HHMMSS.txt`, then overwrite target with original
 3. Results are displayed in the GUI log panel or stdout (auto mode)
 
 ### Key Model
