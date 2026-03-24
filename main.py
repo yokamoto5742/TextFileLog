@@ -6,7 +6,7 @@ from utils.config_manager import ConfigManager
 
 
 def run_auto() -> None:
-    """--auto モード: GUIなしで処理して終了。"""
+    """--auto モード: GUIなしで処理して終了"""
     config = ConfigManager()
     operations = config.load()
     if not operations:

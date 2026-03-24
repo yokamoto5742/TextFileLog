@@ -6,7 +6,7 @@ from utils.models import FileOperation
 
 class FileProcessor:
     def process(self, op: FileOperation) -> str:
-        """1件のファイル操作を処理してログメッセージを返す。"""
+        """ファイルを操作してログメッセージを返す"""
         target = op.target_path
         original = op.original_path
 
@@ -26,7 +26,7 @@ class FileProcessor:
             op.archive_dir.mkdir(parents=True, exist_ok=True)
             shutil.copy2(target, archive_path)
             shutil.copy2(original, target)
-            return f"[処理済] {op.name}: {target.name} → {archive_path.name} にアーカイブ、原本で上書き"
+            return f"[処理済] {op.name}: {target.name} → {archive_path.name} にアーカイブ"
         except Exception as e:
             return f"[エラー] {op.name}: {e}"
 

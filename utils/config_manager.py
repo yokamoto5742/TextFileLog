@@ -6,9 +6,8 @@ from utils.models import FileOperation
 
 
 def _get_config_path() -> Path:
-    """PyInstaller frozen 環境と通常環境の両方に対応して config.ini のパスを返す。"""
     if getattr(sys, "frozen", False):
-        base = Path(sys._MEIPASS)  # type: ignore[attr-defined]
+        base = Path(sys._MEIPASS)
     else:
         base = Path(__file__).parent
     return base / "config.ini"
