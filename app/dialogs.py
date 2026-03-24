@@ -44,7 +44,7 @@ class OperationEditDialog(tk.Toplevel):
         tk.Button(self, text="参照", command=self._browse_archive).grid(row=3, column=2, **_PAD)  # type: ignore[arg-type]
 
         btn_frame = tk.Frame(self)
-        btn_frame.grid(row=4, column=0, columnspan=3, pady=8)
+        btn_frame.grid(row=4, column=0, columnspan=3, pady=8, sticky="w")
         tk.Button(btn_frame, text="保存", width=10, command=self._save).pack(side="left", padx=4)
         tk.Button(btn_frame, text="キャンセル", width=10, command=self.destroy).pack(side="left", padx=4)
 
@@ -113,12 +113,12 @@ class SettingsDialog(tk.Toplevel):
         scrollbar.config(command=self._listbox.yview)
 
         btn_frame = tk.Frame(self)
-        btn_frame.pack(pady=4)
+        btn_frame.pack(anchor="w", pady=4, padx=8)
         for text, cmd in [("追加", self._add), ("編集", self._edit), ("削除", self._delete)]:
             tk.Button(btn_frame, text=text, width=8, command=cmd).pack(side="left", padx=4)
 
         bottom = tk.Frame(self)
-        bottom.pack(pady=8)
+        bottom.pack(anchor="w", pady=8, padx=8)
         tk.Button(bottom, text="保存", width=10, command=self._save).pack(side="left", padx=4)
         tk.Button(bottom, text="キャンセル", width=10, command=self.destroy).pack(side="left", padx=4)
 
