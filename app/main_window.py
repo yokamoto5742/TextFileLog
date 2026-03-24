@@ -3,6 +3,7 @@ from datetime import datetime
 from tkinter import messagebox
 from tkinter.scrolledtext import ScrolledText
 
+from app import __version__
 from app.dialogs import SettingsDialog
 from service.file_processor import FileProcessor
 from service.startup_manager import TaskSchedulerManager
@@ -13,7 +14,7 @@ from utils.models import FileOperation
 class MainApp(tk.Tk):
     def __init__(self) -> None:
         super().__init__()
-        self.title("TextFileLog")
+        self.title(f"TextFileLog v{__version__}")
         self.resizable(True, True)
 
         self._config = ConfigManager()
@@ -38,11 +39,12 @@ class MainApp(tk.Tk):
         scrollbar.config(command=self._listbox.yview)
 
         btn_frame = tk.Frame(self)
-        btn_frame.pack(pady=4)
+        btn_frame.pack(anchor="w", pady=4, padx=8)
         tk.Button(btn_frame, text="実行", width=10, command=self._run).pack(side="left", padx=4)
         tk.Button(btn_frame, text="設定", width=10, command=self._open_settings).pack(side="left", padx=4)
         self._task_btn = tk.Button(btn_frame, text="タスク登録", width=12, command=self._toggle_task)
         self._task_btn.pack(side="left", padx=4)
+        tk.Button(btn_frame, text="閉じる", width=10, command=self.destroy).pack(side="left", padx=4)
 
         tk.Label(self, text="ログ:").pack(anchor="w", padx=8, pady=4)
         self._log = ScrolledText(self, height=10, state="disabled", wrap="word")

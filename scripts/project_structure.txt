@@ -1,0 +1,27 @@
+============================================================
+プロジェクト構造: TextFileLog
+パス: C:\Users\yokam\PycharmProjects\TextFileLog
+生成日時: 2026-03-24 18:18:37
+============================================================
+
+└── TextFileLog
+    ├── app
+    │   ├── __init__.py
+    │   └── main_window.py
+    ├── docs
+    │   └── LICENSE
+    ├── service
+    │   ├── __init__.py
+    │   ├── file_processor.py
+    │   └── startup_manager.py
+    ├── utils
+    │   ├── config.ini
+    │   ├── __init__.py
+    │   ├── config_manager.py
+    │   └── models.py
+    ├── requirements.txt
+    ├── build.py
+    ├── CLAUDE.md
+    ├── main.py
+    ├── pyrightconfig.json
+    └── README.md
