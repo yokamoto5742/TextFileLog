@@ -4,7 +4,7 @@ import sys
 import tkinter as tk
 import winreg
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, filedialog
 from tkinter.scrolledtext import ScrolledText
@@ -75,28 +75,9 @@ class ConfigManager:
             cp.set(section, "target_path", str(op.target_path))
             cp.set(section, "archive_dir", str(op.archive_dir))
 
-        if not cp.has_section("general"):
-            cp.add_section("general")
-
         with self.path.open("w", encoding="utf-8") as f:
             cp.write(f)
 
-    def get_last_run(self) -> date | None:
-        cp = self._read()
-        if cp.has_option("general", "last_run"):
-            try:
-                return date.fromisoformat(cp.get("general", "last_run"))
-            except ValueError:
-                pass
-        return None
-
-    def set_last_run(self, d: date) -> None:
-        cp = self._read()
-        if not cp.has_section("general"):
-            cp.add_section("general")
-        cp.set("general", "last_run", d.isoformat())
-        with self.path.open("w", encoding="utf-8") as f:
-            cp.write(f)
 
 
 # ---------------------------------------------------------------------------
@@ -113,15 +94,16 @@ class FileProcessor:
         if not original.exists():
             return f"[エラー] {op.name}: 原本ファイルが存在しません ({original})"
 
-        mtime = datetime.fromtimestamp(target.stat().st_mtime).date()
-        today = date.today()
+        target_mtime = target.stat().st_mtime
+        original_mtime = original.stat().st_mtime
 
-        if mtime >= today:
-            return f"[スキップ] {op.name}: 指定ファイルは本日更新済みです"
+        if target_mtime <= original_mtime:
+            return f"[スキップ] {op.name}: 指定ファイルは原本から更新されていません"
 
-        # アーカイブファイル名: {指定ファイルのstem}{yymmdd}.txt
-        yymmdd = mtime.strftime("%y%m%d")
-        archive_name = f"{target.stem}{yymmdd}{target.suffix}"
+        # アーカイブファイル名: {指定ファイルのstem}{yymmdd_hhmmss}{suffix}
+        dt = datetime.fromtimestamp(target_mtime)
+        timestamp = dt.strftime("%y%m%d_%H%M%S")
+        archive_name = f"{target.stem}{timestamp}{target.suffix}"
         archive_path = op.archive_dir / archive_name
 
         try:
@@ -435,15 +417,11 @@ class MainApp(tk.Tk):
         results = self._processor.process_all(self._operations)
         for msg in results:
             self._append_log(msg)
-        self._config.set_last_run(date.today())
 
     def _auto_run_on_start(self) -> None:
-        last_run = self._config.get_last_run()
-        today = date.today()
-        if last_run is None or last_run < today:
-            if self._operations:
-                self._append_log("起動時の自動実行を開始します")
-                self._run()
+        if self._operations:
+            self._append_log("起動時の自動実行を開始します")
+            self._run()
 
     def _open_settings(self) -> None:
         dlg = SettingsDialog(self, self._operations)
@@ -474,19 +452,12 @@ class MainApp(tk.Tk):
 def run_auto() -> None:
     """--auto モード: GUIなしで処理して終了"""
     config = ConfigManager()
-    last_run = config.get_last_run()
-    today = date.today()
-
-    if last_run is not None and last_run >= today:
-        return  # 本日実行済み
-
     operations = config.load()
     if not operations:
         return
 
     processor = FileProcessor()
     processor.process_all(operations)
-    config.set_last_run(today)
 
 
 def main() -> None:
