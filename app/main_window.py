@@ -4,7 +4,7 @@ from tkinter import messagebox
 from tkinter.scrolledtext import ScrolledText
 
 from app import __version__
-from app.operation_edit_dialog import SettingsDialog
+from app.settings_dialog import SettingsDialog
 from service.file_processor import FileProcessor
 from service.startup_manager import TaskSchedulerManager
 from utils.config_manager import ConfigManager
