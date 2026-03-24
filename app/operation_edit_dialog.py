@@ -1,10 +1,11 @@
 import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog, messagebox
+from typing import Any
 
 from utils.models import FileOperation
 
-_PAD: dict[str, int] = {"padx": 8, "pady": 4}
+_PAD: dict[str, Any] = {"padx": 8, "pady": 4}
 
 
 class OperationEditDialog(tk.Toplevel):
@@ -19,7 +20,7 @@ class OperationEditDialog(tk.Toplevel):
         self._archive = tk.StringVar()
         self._build_ui(operation)
         self.grab_set()
-        self.transient(parent)
+        self.transient(parent)  # type: ignore[arg-type, reportCallIssue]
 
     def _build_ui(self, op: FileOperation | None) -> None:
         if op:

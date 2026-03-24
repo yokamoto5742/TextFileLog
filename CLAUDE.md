@@ -24,58 +24,75 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - コメントとdocstringは必要最小限に日本語で記述します。
 - このアプリのUI画面で表示するメッセージはすべて日本語にします。
 
-## Overview
-
-TextFileLog は Windows 向けの tkinter GUI アプリケーションです。設定したテキストファイルを毎日アーカイブし、原本ファイルで上書きリセットします。Windows タスクスケジューラと連携してログオン時に自動実行できます。
-
 ## Commands
 
 ```bash
-# アプリ起動（GUI）
-python text_file_log.py
+# Run GUI mode
+python main.py
 
-# 自動実行モード（GUI なし、タスクスケジューラ用）
-python text_file_log.py --auto
+# Run headless auto mode (no GUI, processes all operations and exits)
+python main.py --auto
 
-# テスト実行
+# Run tests
 python -m pytest tests/ -v --tb=short
 
-# 型チェック
+# Run a single test file
+python -m pytest tests/test_models.py -v
+
+# Type check
 pyright
 
-# バージョン更新（patch）
-python scripts/version_manager.py
+# Build Windows executable
+python build.py
 ```
 
 ## Architecture
 
-### Core: `text_file_log.py`
+**TextFileLog** is a Windows utility that maintains template/original files and syncs them to working copies, creating timestamped archives of changes.
 
-すべてのコアロジックとUIを含むメインファイル。
+### Layer Structure
 
-- **`FileOperation`** (dataclass) — 1件の操作設定（名前、原本ファイル、指定ファイル、アーカイブ先）
-- **`ConfigManager`** — `config.ini` の読み書き。`[operation_N]` セクション形式で操作を保存、`[general]` に `last_run` を記録
-- **`FileProcessor`** — ファイル操作ロジック。指定ファイルの mtime が今日より古い場合のみアーカイブ（`{stem}{yymmdd}{suffix}` 形式）し原本で上書き
-- **`TaskSchedulerManager`** — `schtasks` コマンドで Windows タスクスケジューラへの登録・削除
-- **`MainApp`** (tk.Tk) — メインウィンドウ。起動時に `last_run` が今日でなければ自動実行
-- **`SettingsDialog`** / **`OperationEditDialog`** — 操作設定の一覧・編集ダイアログ
+- `main.py` — Entry point. Routes to GUI (`MainApp`) or headless (`run_auto()`) based on `--auto` flag.
+- `app/` — Tkinter GUI layer (main window, settings dialog, operation edit dialog)
+- `service/` — Business logic (file processing, Windows startup/registry management)
+- `utils/` — Data models, config management, and `config.ini` storage
 
-### スキップ条件
+### Core Data Flow
 
-`FileProcessor.process()` は以下の場合にスキップ（エラーなし）:
-- 指定ファイルが存在しない
-- 指定ファイルの mtime が今日以降（本日更新済み）
+1. `ConfigManager` loads `FileOperation` objects from `config.ini` (one INI section per operation)
+2. `FileProcessor.process_all()` executes each operation:
+   - If target is newer than original → archive target as `filename_YYMMDD_HHMMSS.ext`, then overwrite target with original
+3. Results are displayed in the GUI log panel or stdout (auto mode)
 
-### その他のモジュール
+### Key Model
 
-- **`utils/config_manager.py`** — 汎用 config ユーティリティ（PyInstaller frozen 環境対応あり）
-- **`scripts/version_manager.py`** — `app/__init__.py` と README.md のバージョン・日付を更新
-- **`app/`**, **`service/`**, **`utils/`**, **`tests/`** — 将来の分割を想定したパッケージ構造（現在は stub）
+```python
+@dataclass
+class FileOperation:
+    name: str           # Display name
+    original_path: Path # Source/template (read-only reference)
+    target_path: Path   # Working file (gets overwritten)
+    archive_dir: Path   # Where modified targets are archived
+```
 
-### 設定ファイル
+### Windows Startup Integration
 
-`config.ini` はスクリプトと同じディレクトリに生成される。バージョン情報は `app/__init__.py` の `__version__` と `__date__` で管理。
+`service/startup_manager.py` writes to the Windows Registry (`HKCU\Software\Microsoft\Windows\CurrentVersion\Run`) to run `main.py --auto` on system startup.
 
-## Type Checking
+### Configuration
 
-`pyrightconfig.json` で `standard` モード、Python 3.13。チェック対象は `app`, `service`, `utils`, `tests`（`scripts/` は除外）。
+`utils/config.ini` is the single source of truth for all operations and startup settings. `ConfigManager` handles path resolution for both dev (Python) and production (PyInstaller frozen) environments.
+
+## Testing
+
+Tests use `pytest` with `unittest.mock`. Test files follow the pattern `tests/test_<module>.py`. Mocking strategy: patch at the call site (e.g., `patch("app.main_window.ConfigManager")`), not at the definition.
+
+## Build
+
+`build.py` auto-increments the version (via `scripts/version_manager.py`), then runs PyInstaller to produce a single `.exe` bundled with `config.ini`.
+
+## Notes
+
+- All UI strings are in Japanese.
+- `pyrightconfig.json` targets Python 3.13; `scripts/` is excluded from type checking.
+- PyInstaller frozen detection: `sys.frozen` attribute is checked in `ConfigManager` to resolve paths correctly when running as `.exe`.

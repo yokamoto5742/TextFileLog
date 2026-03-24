@@ -4,10 +4,9 @@ from pathlib import Path
 
 from utils.models import FileOperation
 
-
 def _get_config_path() -> Path:
     if getattr(sys, "frozen", False):
-        base = Path(sys._MEIPASS)
+        base = Path(getattr(sys, "_MEIPASS"))
     else:
         base = Path(__file__).parent
     return base / "config.ini"
@@ -58,3 +57,9 @@ class ConfigManager:
             cp.set(section, "archive_dir", str(op.archive_dir))
         with self.path.open("w", encoding="utf-8") as f:
             cp.write(f)
+
+    def load_startup(self) -> tuple[str, str]:
+        cp = self._read()
+        task_name = cp.get("startup", "task_name", fallback="TextFileLog")
+        run_key = cp.get("startup", "run_key", fallback=r"Software\Microsoft\Windows\CurrentVersion\Run")
+        return task_name, run_key

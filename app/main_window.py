@@ -89,8 +89,8 @@ class MainApp(tk.Tk):
 
     def _toggle_task(self) -> None:
         if self._scheduler.is_registered():
-            ok, msg = self._scheduler.unregister()
+            _, msg = self._scheduler.unregister()
         else:
-            ok, msg = self._scheduler.register()
+            _, msg = self._scheduler.register()
         self._update_task_button()
         self._append_log(msg)

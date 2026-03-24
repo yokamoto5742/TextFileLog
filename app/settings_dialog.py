@@ -16,7 +16,7 @@ class SettingsDialog(tk.Toplevel):
         self._build_ui()
         self._refresh_list()
         self.grab_set()
-        self.transient(parent)
+        self.transient(parent)  # type: ignore[arg-type, reportCallIssue]
 
     def _build_ui(self) -> None:
         tk.Label(self, text="ファイル操作一覧:").pack(anchor="w", padx=8, pady=4)
