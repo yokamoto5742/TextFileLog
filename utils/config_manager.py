@@ -1,59 +1,61 @@
 import configparser
-import os
 import sys
-from typing import Any
+from pathlib import Path
+
+from utils.models import FileOperation
 
 
-_config_path_cache = None
+def _get_config_path() -> Path:
+    """PyInstaller frozen 環境と通常環境の両方に対応して config.ini のパスを返す。"""
+    if getattr(sys, "frozen", False):
+        base = Path(sys._MEIPASS)  # type: ignore[attr-defined]
+    else:
+        base = Path(__file__).parent
+    return base / "config.ini"
 
 
-def get_config_path():
-    global _config_path_cache
-    if _config_path_cache is None:
-        if getattr(sys, 'frozen', False):
-            base_path = sys._MEIPASS  # type: ignore[attr-defined]  # _internal ディレクトリ
-        else:
-            base_path = os.path.dirname(__file__)
-        _config_path_cache = os.path.join(base_path, 'config.ini')
-    return _config_path_cache
+CONFIG_PATH: Path = _get_config_path()
 
 
-def get_config_value(config: configparser.ConfigParser, section: str, key: str, default: Any) -> Any:
-    try:
-        value = config[section][key]
-        if isinstance(default, bool):
-            return value.lower() in ('true', '1', 'yes', 'on')
-        return type(default)(value)
-    except (KeyError, ValueError, TypeError):
-        return default
+class ConfigManager:
+    def __init__(self, path: Path = CONFIG_PATH):
+        self.path = path
 
+    def _read(self) -> configparser.ConfigParser:
+        cp = configparser.ConfigParser()
+        if self.path.exists():
+            cp.read(self.path, encoding="utf-8")
+        return cp
 
-def load_config() -> configparser.ConfigParser:
-    config = configparser.ConfigParser()
-    config_path = get_config_path()
-    try:
-        with open(config_path, encoding='utf-8') as f:
-            config.read_file(f)
-    except FileNotFoundError:
-        print(f"設定ファイルが見つかりません: {config_path}")
-        raise
-    except PermissionError:
-        print(f"設定ファイルを読み取る権限がありません: {config_path}")
-        raise
-    except configparser.Error as e:
-        print(f"設定ファイルの解析中にエラーが発生しました: {e}")
-        raise
-    return config
+    def load(self) -> list[FileOperation]:
+        cp = self._read()
+        ops: list[FileOperation] = []
+        for section in cp.sections():
+            if not section.startswith("operation_"):
+                continue
+            try:
+                op = FileOperation(
+                    name=cp.get(section, "name", fallback=section),
+                    original_path=Path(cp.get(section, "original_path")),
+                    target_path=Path(cp.get(section, "target_path")),
+                    archive_dir=Path(cp.get(section, "archive_dir")),
+                )
+                ops.append(op)
+            except (configparser.NoOptionError, Exception):
+                pass
+        return ops
 
-
-def save_config(config: configparser.ConfigParser):
-    config_path = get_config_path()
-    try:
-        with open(config_path, 'w', encoding='utf-8') as configfile:
-            config.write(configfile)
-    except PermissionError:
-        print(f"設定ファイルを書き込む権限がありません: {config_path}")
-        raise
-    except IOError as e:
-        print(f"設定ファイルの保存中にエラーが発生しました: {e}")
-        raise
+    def save(self, operations: list[FileOperation]) -> None:
+        cp = self._read()
+        for section in cp.sections():
+            if section.startswith("operation_"):
+                cp.remove_section(section)
+        for i, op in enumerate(operations, start=1):
+            section = f"operation_{i}"
+            cp.add_section(section)
+            cp.set(section, "name", op.name)
+            cp.set(section, "original_path", str(op.original_path))
+            cp.set(section, "target_path", str(op.target_path))
+            cp.set(section, "archive_dir", str(op.archive_dir))
+        with self.path.open("w", encoding="utf-8") as f:
+            cp.write(f)
