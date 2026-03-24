@@ -9,10 +9,12 @@ from pathlib import Path
 from tkinter import messagebox, filedialog
 from tkinter.scrolledtext import ScrolledText
 
+from utils.config_manager import get_config_path
+
 # ---------------------------------------------------------------------------
 # 定数
 # ---------------------------------------------------------------------------
-CONFIG_PATH = Path(__file__).parent / "utils/config.ini"
+CONFIG_PATH = Path(get_config_path())
 TASK_NAME = "TextFileLog"
 SCRIPT_PATH = Path(__file__).resolve()
 
@@ -139,11 +141,13 @@ class TaskSchedulerManager:
             return False
 
     def register(self) -> tuple[bool, str]:
-        pythonw = Path(sys.executable).parent / "pythonw.exe"
-        if not pythonw.exists():
-            pythonw = Path(sys.executable)
-
-        cmd = f'"{pythonw}" "{SCRIPT_PATH}" --auto'
+        if getattr(sys, 'frozen', False):
+            cmd = f'"{sys.executable}" --auto'
+        else:
+            pythonw = Path(sys.executable).parent / "pythonw.exe"
+            if not pythonw.exists():
+                pythonw = Path(sys.executable)
+            cmd = f'"{pythonw}" "{SCRIPT_PATH}" --auto'
         try:
             with winreg.OpenKey(
                 winreg.HKEY_CURRENT_USER, _RUN_KEY, access=winreg.KEY_SET_VALUE
