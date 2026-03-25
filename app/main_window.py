@@ -73,7 +73,13 @@ class MainApp(tk.Tk):
             self._append_log(msg)
 
     def _open_settings(self) -> None:
-        dlg = SettingsDialog(self, self._operations)
+        def on_delete(ops: list[FileOperation]) -> None:
+            self._operations = ops
+            self._config.save(ops)
+            self._refresh_list()
+            self._append_log("設定を削除しました")
+
+        dlg = SettingsDialog(self, self._operations, on_delete=on_delete)
         self.wait_window(dlg)
         if dlg.result is not None:
             self._operations = dlg.result

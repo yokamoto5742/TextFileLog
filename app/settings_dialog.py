@@ -7,12 +7,13 @@ from app.operation_edit_dialog import OperationEditDialog
 
 
 class SettingsDialog(tk.Toplevel):
-    def __init__(self, parent: tk.Misc, operations: list[FileOperation]):
+    def __init__(self, parent: tk.Misc, operations: list[FileOperation], on_delete=None):
         super().__init__(parent)
         self.title("設定")
         self.resizable(True, True)
         self._ops: list[FileOperation] = list(operations)
         self.result: list[FileOperation] | None = None
+        self._on_delete = on_delete
         self._build_ui()
         self._refresh_list()
         self.grab_set()
@@ -75,6 +76,8 @@ class SettingsDialog(tk.Toplevel):
         if messagebox.askyesno("確認", f"「{self._ops[idx].name}」を削除しますか？", parent=self):
             self._ops.pop(idx)
             self._refresh_list()
+            if self._on_delete:
+                self._on_delete(list(self._ops))
 
     def _save(self) -> None:
         self.result = self._ops
