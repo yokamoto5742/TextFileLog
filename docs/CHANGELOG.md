@@ -4,6 +4,16 @@
 
 このファイルのフォーマットは [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/) に基づいており、このプロジェクトは [Semantic Versioning](https://semver.org/lang/ja/) に従います。
 
+## [1.0.2] - 2026-03-25
+
+### 追加
+
+- 設定ダイアログに操作内容の削除をすぐに保存する機能を追加
+
+### 修正
+
+- GUI起動時の自動実行処理を削除（--auto モードでのみ自動実行を実行）
+
 ## [1.0.1] - 2026-03-24
 安定版初回リリース
 
@@ -25,5 +35,3 @@
 
 - ファイルアーカイブ時のログメッセージを修正
 - ファイル操作がない場合のメッセージを修正
-
-[1.0.1]: https://github.com/yourusername/TextFileLog/releases/tag/1.0.1
