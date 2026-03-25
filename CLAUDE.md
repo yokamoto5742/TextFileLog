@@ -24,75 +24,75 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - コメントとdocstringは必要最小限に日本語で記述します。
 - このアプリのUI画面で表示するメッセージはすべて日本語にします。
 
+## Project Overview
+
+TextFileLog is a Windows utility (Windows 11 only) that manages original/template files and synchronizes them with working copies. When a working copy is newer than the original, it archives the working copy with a timestamp and overwrites it with the original.
+
 ## Commands
 
 ```bash
-# Run GUI mode
+# Run (GUI mode)
 python main.py
 
-# Run headless auto mode (no GUI, processes all operations and exits)
+# Run (headless/auto mode)
 python main.py --auto
 
-# Run tests
+# Tests
 python -m pytest tests/ -v --tb=short
 
 # Run a single test file
 python -m pytest tests/test_models.py -v
 
-# Type check
+# Type checking
 pyright
 
-# Build Windows executable
+# Build executable (increments patch version, creates dist/TextFileLog.exe)
 python build.py
 ```
 
 ## Architecture
 
-**TextFileLog** is a Windows utility that maintains template/original files and syncs them to working copies, creating timestamped archives of changes.
+Three-layer clean architecture:
 
-### Layer Structure
-
-- `main.py` — Entry point. Routes to GUI (`MainApp`) or headless (`run_auto()`) based on `--auto` flag.
-- `app/` — Tkinter GUI layer (main window, settings dialog, operation edit dialog)
-- `service/` — Business logic (file processing, Windows startup/registry management)
-- `utils/` — Data models, config management, and `config.ini` storage
-
-### Core Data Flow
-
-1. `ConfigManager` loads `FileOperation` objects from `config.ini` (one INI section per operation)
-2. `FileProcessor.process_all()` executes each operation:
-   - If target is newer than original → archive target as `filename_YYMMDD_HHMMSS.txt`, then overwrite target with original
-3. Results are displayed in the GUI log panel or stdout (auto mode)
-
-### Key Model
-
-```python
-@dataclass
-class FileOperation:
-    name: str           # Display name
-    original_path: Path # Source/template (read-only reference)
-    target_path: Path   # Working file (gets overwritten)
-    archive_dir: Path   # Where modified targets are archived
+```
+app/        ← GUI (Tkinter): main_window, settings_dialog, operation_edit_dialog
+service/    ← Business logic: file_processor (sync/archive), startup_manager (Windows registry)
+utils/      ← Data: models (FileOperation dataclass), config_manager (INI read/write)
 ```
 
-### Windows Startup Integration
+**Data flow:** `ConfigManager` loads `FileOperation` list from `utils/config.ini` → `FileProcessor` processes each operation → results logged to GUI or stdout.
 
-`service/startup_manager.py` writes to the Windows Registry (`HKCU\Software\Microsoft\Windows\CurrentVersion\Run`) to run `main.py --auto` on system startup.
+### FileProcessor logic (core)
 
-### Configuration
+For each `FileOperation`:
+1. If target doesn't exist → skip
+2. If original doesn't exist → error
+3. If target is **newer** than original → archive target as `filename_YYMMDD_HHMMSS.ext`, then overwrite target with original
+4. If target is older → skip
 
-`utils/config.ini` is the single source of truth for all operations and startup settings. `ConfigManager` handles path resolution for both dev (Python) and production (PyInstaller frozen) environments.
+### Startup integration
 
-## Testing
+`StartupManager` writes/removes a registry entry at `HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run` pointing to `pythonw.exe main.py --auto`.
 
-Tests use `pytest` with `unittest.mock`. Test files follow the pattern `tests/test_<module>.py`. Mocking strategy: patch at the call site (e.g., `patch("app.main_window.ConfigManager")`), not at the definition.
+### Config file format (`utils/config.ini`)
 
-## Build
+```ini
+[startup]
+task_name = TextFileLog
+run_key = Software\Microsoft\Windows\CurrentVersion\Run
 
-`build.py` auto-increments the version (via `scripts/version_manager.py`), then runs PyInstaller to produce a single `.exe` bundled with `config.ini`.
+[operation_1]
+name = Display Name
+original_path = C:\path\to\original.txt
+target_path = C:\path\to\working.txt
+archive_dir = C:\path\to\archive
+```
 
-## Notes
+`ConfigManager` detects PyInstaller frozen mode (`sys.frozen`) and adjusts paths accordingly — config.ini is bundled into the exe.
 
-- All UI strings are in Japanese.
-- `pyrightconfig.json` targets Python 3.13; `scripts/` is excluded from type checking.
-- PyInstaller frozen detection: `sys.frozen` attribute is checked in `ConfigManager` to resolve paths correctly when running as `.exe`.
+## Key Details
+
+- All UI text and log messages are in Japanese
+- Version is tracked in `app/__init__.py` (`__version__`, `__date__`) and updated by `scripts/version_manager.py` (called automatically by `build.py`)
+- `MainApp` auto-runs all operations 100ms after startup if any operations are configured
+- Log message prefixes: `[処理済]` (processed), `[スキップ]` (skipped), `[エラー]` (error)
