@@ -1,14 +1,13 @@
 # TextFileLog
 
-テンプレート/オリジナルファイルを管理し、作業コピーに同期させるための Windows ユーティリティです。変更されたファイルはタイムスタンプ付きでアーカイブされます。
+原本ファイルを管理し、作業用コピーに同期させるための Windows ユーティリティです。変更されたファイルはタイムスタンプ付きでアーカイブされます。
 
 ## 機能
 
 - オリジナルファイルと作業コピーの同期管理
 - 変更前の作業ファイルを自動アーカイブ（`filename_YYMMDD_HHMMSS.txt` 形式）
 - GUI と自動実行モードの両方をサポート
-- Windows スタートアップへの自動登録機能
-- 複数の操作を同時管理
+- Windowsスタートアップへの自動登録機能
 
 ## 動作環境
 
@@ -71,16 +70,16 @@ python main.py --auto
 ```ini
 [operation_1]
 name = 操作の表示名
-original_path = C:\path\to\original.txt
 target_path = C:\path\to\working.txt
 archive_dir = C:\path\to\archive
+original_path = C:\path\to\original.txt
 ```
 
 各セクションの説明：
 - `name` ：操作の表示名
-- `original_path` ：原本ファイル（読み取り専用）
 - `target_path` ：指定ファイル（オーバーライトされる対象）
 - `archive_dir` ：変更されたファイルのアーカイブ先
+- `original_path` ：原本ファイル（読み取り専用）
 
 ## プロジェクト構造
 
@@ -113,9 +112,9 @@ TextFileLog/
 @dataclass
 class FileOperation:
     name: str           # 操作の表示名
-    original_path: Path # オリジナルファイルのパス
     target_path: Path   # 作業コピーのパス
     archive_dir: Path   # アーカイブディレクトリ
+    original_path: Path # オリジナルファイルのパス
 ```
 
 ### FileProcessor
