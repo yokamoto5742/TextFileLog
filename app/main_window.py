@@ -25,7 +25,6 @@ class MainApp(tk.Tk):
         self._build_ui()
         self._refresh_list()
         self._update_task_button()
-        self.after(100, self._auto_run_on_start)
 
     def _build_ui(self) -> None:
         tk.Label(self, text="ファイル操作一覧:").pack(anchor="w", padx=8, pady=4)
@@ -72,11 +71,6 @@ class MainApp(tk.Tk):
             return
         for msg in self._processor.process_all(self._operations):
             self._append_log(msg)
-
-    def _auto_run_on_start(self) -> None:
-        if self._operations:
-            self._append_log("起動時の自動実行を開始します")
-            self._run()
 
     def _open_settings(self) -> None:
         dlg = SettingsDialog(self, self._operations)

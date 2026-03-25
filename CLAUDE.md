@@ -94,5 +94,5 @@ archive_dir = C:\path\to\archive
 
 - All UI text and log messages are in Japanese
 - Version is tracked in `app/__init__.py` (`__version__`, `__date__`) and updated by `scripts/version_manager.py` (called automatically by `build.py`)
-- `MainApp` auto-runs all operations 100ms after startup if any operations are configured
+- `MainApp` does NOT auto-run on startup in GUI mode; auto-run only happens in `--auto` (headless) mode
 - Log message prefixes: `[処理済]` (processed), `[スキップ]` (skipped), `[エラー]` (error)
