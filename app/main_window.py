@@ -70,12 +70,8 @@ class MainApp(tk.Tk):
             self._refresh_list()
             self._append_log("設定を削除しました")
 
-        self.withdraw()
-        try:
-            dlg = SettingsDialog(self, self._operations, on_delete=on_delete)
-            self.wait_window(dlg)
-        finally:
-            self.deiconify()
+        dlg = SettingsDialog(self, self._operations, on_delete=on_delete)
+        self.wait_window(dlg)
         if dlg.result is not None:
             self._operations = dlg.result
             self._config.save(self._operations)
