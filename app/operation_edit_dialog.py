@@ -3,21 +3,32 @@ from pathlib import Path
 from tkinter import filedialog, messagebox
 from typing import Any
 
+from utils.config_manager import ConfigManager
 from utils.models import FileOperation
 
 _PAD: dict[str, Any] = {"padx": 8, "pady": 4}
 
 
 class OperationEditDialog(tk.Toplevel):
-    def __init__(self, parent: tk.Misc, operation: FileOperation | None = None):
+    def __init__(
+        self,
+        parent: tk.Misc,
+        operation: FileOperation | None = None,
+        direct_save_mode: bool = False,
+    ):
         super().__init__(parent)
         self.title("ファイル操作設定")
-        self.resizable(False, False)
+        self.resizable(True, True)
         self.result: FileOperation | None = None
+        self.direct_saved: bool = False
+        self._direct_save_mode = direct_save_mode
         self._name_var = tk.StringVar()
         self._original = tk.StringVar()
         self._target = tk.StringVar()
         self._archive = tk.StringVar()
+
+        w, h = ConfigManager().load_window_size("edit", 550, 220)
+        self.geometry(f"{w}x{h}")
         self._build_ui(operation)
         self.grab_set()
         self.transient(parent)  # type: ignore[arg-type, reportCallIssue]
@@ -29,12 +40,12 @@ class OperationEditDialog(tk.Toplevel):
             self._target.set(str(op.target_path))
             self._archive.set(str(op.archive_dir))
 
-        tk.Label(self, text="名称:").grid(row=0, column=0, sticky="e", **_PAD)
-        tk.Entry(self, textvariable=self._name_var, width=50).grid(row=0, column=1, columnspan=2, sticky="we", **_PAD)
+        tk.Label(self, text="指定ファイル:").grid(row=0, column=0, sticky="e", **_PAD)
+        tk.Entry(self, textvariable=self._target, width=50).grid(row=0, column=1, sticky="we", **_PAD)
+        tk.Button(self, text="参照", command=self._browse_target).grid(row=0, column=2, **_PAD)
 
-        tk.Label(self, text="指定ファイル:").grid(row=1, column=0, sticky="e", **_PAD)
-        tk.Entry(self, textvariable=self._target, width=50).grid(row=1, column=1, sticky="we", **_PAD)
-        tk.Button(self, text="参照", command=self._browse_target).grid(row=1, column=2, **_PAD)
+        tk.Label(self, text="名称:").grid(row=1, column=0, sticky="e", **_PAD)
+        tk.Entry(self, textvariable=self._name_var, width=50).grid(row=1, column=1, columnspan=2, sticky="we", **_PAD)
 
         tk.Label(self, text="原本ファイル:").grid(row=2, column=0, sticky="e", **_PAD)
         tk.Entry(self, textvariable=self._original, width=50).grid(row=2, column=1, sticky="we", **_PAD)
@@ -83,7 +94,7 @@ class OperationEditDialog(tk.Toplevel):
         target = self._target.get().strip()
         archive = self._archive.get().strip()
 
-        for label, value in [("名称", name), ("指定ファイル", target), ("アーカイブ先", archive),("原本ファイル", original)]:
+        for label, value in [("指定ファイル", target), ("名称", name), ("アーカイブ先", archive), ("原本ファイル", original)]:
             if not value:
                 messagebox.showwarning("入力エラー", f"{label}を入力してください", parent=self)
                 return
@@ -94,5 +105,6 @@ class OperationEditDialog(tk.Toplevel):
             target_path=Path(target),
             archive_dir=Path(archive),
         )
+        if self._direct_save_mode:
+            self.direct_saved = True
         self.destroy()
-

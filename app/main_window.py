@@ -20,6 +20,8 @@ class MainApp(tk.Tk):
         self._processor = FileProcessor()
         self._operations: list[FileOperation] = self._config.load()
 
+        w, h = self._config.load_window_size("main", 600, 500)
+        self.geometry(f"{w}x{h}")
         self._build_ui()
         self._refresh_list()
 

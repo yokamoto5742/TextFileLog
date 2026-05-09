@@ -43,6 +43,12 @@ class ConfigManager:
                 pass
         return ops
 
+    def load_window_size(self, key: str, default_w: int, default_h: int) -> tuple[int, int]:
+        cp = self._read()
+        w = cp.getint("window_sizes", f"{key}_width", fallback=default_w)
+        h = cp.getint("window_sizes", f"{key}_height", fallback=default_h)
+        return w, h
+
     def save(self, operations: list[FileOperation]) -> None:
         cp = self._read()
         for section in cp.sections():

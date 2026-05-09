@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 
+from utils.config_manager import ConfigManager
 from utils.models import FileOperation
 
 from app.operation_edit_dialog import OperationEditDialog
@@ -14,6 +15,9 @@ class SettingsDialog(tk.Toplevel):
         self._ops: list[FileOperation] = list(operations)
         self.result: list[FileOperation] | None = None
         self._on_delete = on_delete
+
+        w, h = ConfigManager().load_window_size("settings", 500, 400)
+        self.geometry(f"{w}x{h}")
         self._build_ui()
         self._refresh_list()
         self.grab_set()
@@ -53,21 +57,29 @@ class SettingsDialog(tk.Toplevel):
         return sel[0]
 
     def _add(self) -> None:
-        dlg = OperationEditDialog(self)
+        dlg = OperationEditDialog(self, direct_save_mode=True)
         self.wait_window(dlg)
         if dlg.result:
             self._ops.append(dlg.result)
-            self._refresh_list()
+            if dlg.direct_saved:
+                self.result = list(self._ops)
+                self.destroy()
+            else:
+                self._refresh_list()
 
     def _edit(self) -> None:
         idx = self._selected_index("編集")
         if idx is None:
             return
-        dlg = OperationEditDialog(self, self._ops[idx])
+        dlg = OperationEditDialog(self, self._ops[idx], direct_save_mode=True)
         self.wait_window(dlg)
         if dlg.result:
             self._ops[idx] = dlg.result
-            self._refresh_list()
+            if dlg.direct_saved:
+                self.result = list(self._ops)
+                self.destroy()
+            else:
+                self._refresh_list()
 
     def _delete(self) -> None:
         idx = self._selected_index("削除")
