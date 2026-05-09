@@ -56,6 +56,13 @@ class OperationEditDialog(tk.Toplevel):
         )
         if path:
             self._target.set(path)
+            self._auto_fill(Path(path))
+
+    def _auto_fill(self, target: Path) -> None:
+        parent = target.parent
+        self._name_var.set(parent.name)
+        self._archive.set(str(parent / "開発用プロンプト"))
+        self._original.set(str(parent / "開発用プロンプト" / "原本" / target.name))
 
     def _browse_archive(self) -> None:
         path = filedialog.askdirectory(title="アーカイブ先ディレクトリを選択")
