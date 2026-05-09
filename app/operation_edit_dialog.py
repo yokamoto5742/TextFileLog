@@ -90,9 +90,9 @@ class OperationEditDialog(tk.Toplevel):
 
     def _save(self) -> None:
         name = self._name_var.get().strip()
-        original = self._original.get().strip()
-        target = self._target.get().strip()
-        archive = self._archive.get().strip()
+        original = self._original.get().strip().strip('"')
+        target = self._target.get().strip().strip('"')
+        archive = self._archive.get().strip().strip('"')
 
         for label, value in [("指定ファイル", target), ("名称", name), ("アーカイブ先", archive), ("原本ファイル", original)]:
             if not value:
