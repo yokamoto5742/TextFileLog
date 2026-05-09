@@ -6,7 +6,6 @@ from tkinter.scrolledtext import ScrolledText
 from app import __version__
 from app.settings_dialog import SettingsDialog
 from service.file_processor import FileProcessor
-from service.startup_manager import TaskSchedulerManager
 from utils.config_manager import ConfigManager
 from utils.models import FileOperation
 
@@ -19,12 +18,10 @@ class MainApp(tk.Tk):
 
         self._config = ConfigManager()
         self._processor = FileProcessor()
-        self._scheduler = TaskSchedulerManager()
         self._operations: list[FileOperation] = self._config.load()
 
         self._build_ui()
         self._refresh_list()
-        self._update_task_button()
 
     def _build_ui(self) -> None:
         tk.Label(self, text="ファイル操作一覧:").pack(anchor="w", padx=8, pady=4)
@@ -41,8 +38,6 @@ class MainApp(tk.Tk):
         btn_frame.pack(anchor="w", pady=4, padx=8)
         tk.Button(btn_frame, text="実行", width=10, command=self._run).pack(side="left", padx=4)
         tk.Button(btn_frame, text="設定", width=10, command=self._open_settings).pack(side="left", padx=4)
-        self._task_btn = tk.Button(btn_frame, text="自動実行登録", width=12, command=self._toggle_task)
-        self._task_btn.pack(side="left", padx=4)
         tk.Button(btn_frame, text="閉じる", width=10, command=self.destroy).pack(side="left", padx=4)
 
         tk.Label(self, text="ログ:").pack(anchor="w", padx=8, pady=4)
@@ -53,10 +48,6 @@ class MainApp(tk.Tk):
         self._listbox.delete(0, tk.END)
         for op in self._operations:
             self._listbox.insert(tk.END, op.name)
-
-    def _update_task_button(self) -> None:
-        text = "自動実行解除" if self._scheduler.is_registered() else "自動実行登録"
-        self._task_btn.config(text=text)
 
     def _append_log(self, message: str) -> None:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -79,18 +70,14 @@ class MainApp(tk.Tk):
             self._refresh_list()
             self._append_log("設定を削除しました")
 
-        dlg = SettingsDialog(self, self._operations, on_delete=on_delete)
-        self.wait_window(dlg)
+        self.withdraw()
+        try:
+            dlg = SettingsDialog(self, self._operations, on_delete=on_delete)
+            self.wait_window(dlg)
+        finally:
+            self.deiconify()
         if dlg.result is not None:
             self._operations = dlg.result
             self._config.save(self._operations)
             self._refresh_list()
             self._append_log("設定を保存しました")
-
-    def _toggle_task(self) -> None:
-        if self._scheduler.is_registered():
-            _, msg = self._scheduler.unregister()
-        else:
-            _, msg = self._scheduler.register()
-        self._update_task_button()
-        self._append_log(msg)

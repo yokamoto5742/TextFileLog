@@ -32,17 +32,17 @@ class OperationEditDialog(tk.Toplevel):
         tk.Label(self, text="名称:").grid(row=0, column=0, sticky="e", **_PAD)
         tk.Entry(self, textvariable=self._name_var, width=50).grid(row=0, column=1, columnspan=2, sticky="we", **_PAD)
 
-        tk.Label(self, text="指定ファイル:").grid(row=2, column=0, sticky="e", **_PAD)
-        tk.Entry(self, textvariable=self._target, width=50).grid(row=2, column=1, sticky="we", **_PAD)
-        tk.Button(self, text="参照", command=self._browse_target).grid(row=2, column=2, **_PAD)
+        tk.Label(self, text="指定ファイル:").grid(row=1, column=0, sticky="e", **_PAD)
+        tk.Entry(self, textvariable=self._target, width=50).grid(row=1, column=1, sticky="we", **_PAD)
+        tk.Button(self, text="参照", command=self._browse_target).grid(row=1, column=2, **_PAD)
+
+        tk.Label(self, text="原本ファイル:").grid(row=2, column=0, sticky="e", **_PAD)
+        tk.Entry(self, textvariable=self._original, width=50).grid(row=2, column=1, sticky="we", **_PAD)
+        tk.Button(self, text="参照", command=self._browse_original).grid(row=2, column=2, **_PAD)
 
         tk.Label(self, text="アーカイブ先:").grid(row=3, column=0, sticky="e", **_PAD)
         tk.Entry(self, textvariable=self._archive, width=50).grid(row=3, column=1, sticky="we", **_PAD)
         tk.Button(self, text="参照", command=self._browse_archive).grid(row=3, column=2, **_PAD)
-
-        tk.Label(self, text="原本ファイル:").grid(row=1, column=0, sticky="e", **_PAD)
-        tk.Entry(self, textvariable=self._original, width=50).grid(row=1, column=1, sticky="we", **_PAD)
-        tk.Button(self, text="参照", command=self._browse_original).grid(row=1, column=2, **_PAD)
 
         btn_frame = tk.Frame(self)
         btn_frame.grid(row=4, column=0, columnspan=3, pady=8, sticky="w")

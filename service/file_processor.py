@@ -5,13 +5,13 @@ from utils.models import FileOperation
 
 
 class FileProcessor:
-    def process(self, op: FileOperation) -> str:
-        """ファイルを操作してログメッセージを返す"""
+    def process(self, op: FileOperation) -> str | None:
+        """ファイルを操作してログメッセージを返す。指定ファイル不在時は無音スキップ(None)"""
         target = op.target_path
         original = op.original_path
 
         if not target.exists():
-            return f"[スキップ] {op.name}: 指定ファイルが存在しません ({target})"
+            return None
         if not original.exists():
             return f"[エラー] {op.name}: 原本ファイルが存在しません ({original})"
 
@@ -31,4 +31,5 @@ class FileProcessor:
             return f"[エラー] {op.name}: {e}"
 
     def process_all(self, operations: list[FileOperation]) -> list[str]:
-        return [self.process(op) for op in operations]
+        results = [self.process(op) for op in operations]
+        return [msg for msg in results if msg is not None]

@@ -53,8 +53,12 @@ class SettingsDialog(tk.Toplevel):
         return sel[0]
 
     def _add(self) -> None:
-        dlg = OperationEditDialog(self)
-        self.wait_window(dlg)
+        self.withdraw()
+        try:
+            dlg = OperationEditDialog(self)
+            self.wait_window(dlg)
+        finally:
+            self.deiconify()
         if dlg.result:
             self._ops.append(dlg.result)
             self._refresh_list()
@@ -63,8 +67,12 @@ class SettingsDialog(tk.Toplevel):
         idx = self._selected_index("編集")
         if idx is None:
             return
-        dlg = OperationEditDialog(self, self._ops[idx])
-        self.wait_window(dlg)
+        self.withdraw()
+        try:
+            dlg = OperationEditDialog(self, self._ops[idx])
+            self.wait_window(dlg)
+        finally:
+            self.deiconify()
         if dlg.result:
             self._ops[idx] = dlg.result
             self._refresh_list()

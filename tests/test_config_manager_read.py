@@ -23,13 +23,13 @@ def test_read_returns_sections_from_valid_file(tmp_path):
     """正常な config.ini からセクションを読み込む"""
     config_file = tmp_path / "config.ini"
     config_file.write_text(
-        "[operation_1]\nname = テスト\n[startup]\ntask_name = App\n",
+        "[operation_1]\nname = テスト\n[operation_2]\nname = サンプル\n",
         encoding="utf-8",
     )
     cm = ConfigManager(config_file)
     cp = cm._read()
     assert "operation_1" in cp.sections()
-    assert "startup" in cp.sections()
+    assert "operation_2" in cp.sections()
 
 
 def test_read_returns_configparser_instance(tmp_path):
