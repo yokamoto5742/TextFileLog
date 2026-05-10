@@ -4,6 +4,23 @@
 
 このファイルのフォーマットは [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/) に基づいており、このプロジェクトは [Semantic Versioning](https://semver.org/lang/ja/) に従います。
 
+## [1.1.0] - 2026-05-10
+
+### 追加
+
+- operation_edit_dialog に一括登録ボタンと機能を追加
+- ターゲットパスから操作設定を自動入力する機能を追加
+- 設定ファイル(config.ini)にウィンドウサイズと操作設定を保存する機能を追加
+
+### 変更
+
+- 編集幅と日付を更新
+- 一括登録ボタンの配置を調整
+
+### 修正
+
+- operation_edit_dialog の引用符を修正
+
 ## [1.0.2] - 2026-03-25
 
 ### 追加

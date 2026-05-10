@@ -8,6 +8,8 @@
 - 変更前の作業ファイルを自動アーカイブ（`filename_YYMMDD_HHMMSS.txt` 形式）
 - GUI と自動実行モードの両方をサポート
 - Windowsスタートアップへの自動登録機能
+- 一括登録機能：ターゲットパスから自動入力してワンクリック登録
+- ウィンドウサイズの保存
 
 ## 動作環境
 
@@ -65,9 +67,17 @@ python main.py --auto
 
 ### 操作の設定
 
-`utils/config.ini` でファイル操作を定義します。
+`utils/config.ini` でファイル操作を定義します。GUI の「設定」から追加・編集・削除も可能です。
 
 ```ini
+[window_sizes]
+main_width = 500
+main_height = 500
+settings_width = 300
+settings_height = 400
+edit_width = 630
+edit_height = 200
+
 [operation_1]
 name = 操作の表示名
 target_path = C:\path\to\working.txt
@@ -76,10 +86,19 @@ original_path = C:\path\to\original.txt
 ```
 
 各セクションの説明：
-- `name` ：操作の表示名
-- `target_path` ：指定ファイル（オーバーライトされる対象）
-- `archive_dir` ：変更されたファイルのアーカイブ先
-- `original_path` ：原本ファイル（読み取り専用）
+- `[window_sizes]` ：各ウィンドウのサイズ（GUI で自動保存）
+- `[operation_*]` ：ファイル操作の定義
+  - `name` ：操作の表示名
+  - `target_path` ：指定ファイル（オーバーライトされる対象）
+  - `archive_dir` ：変更されたファイルのアーカイブ先
+  - `original_path` ：原本ファイル（読み取り専用）
+
+#### 一括登録機能
+
+操作編集ダイアログで「一括登録」ボタンをクリックすると：
+1. 指定ファイルを選択（またはパスを入力）
+2. ファイルの親ディレクトリから自動的に情報を入力
+3. 一度に保存して操作を登録
 
 ## プロジェクト構造
 
@@ -186,11 +205,6 @@ python build.py
 **ターゲットファイルが更新されない**
 - ターゲットがオリジナルより新しい場合のみ処理されます
 - ファイルの更新日時を確認してください
-
-## バージョン情報
-
-- **現在のバージョン**: 1.0.2
-- **最終更新日**: 2026年03月25日
 
 ## ライセンス
 
